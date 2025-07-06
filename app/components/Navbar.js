@@ -1,5 +1,8 @@
+'use client'
+import mvLogo from '@/public/MV_logo.jpg'   
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { 
   Menu, 
   X,
@@ -46,7 +49,7 @@ export default function Navbar({ toggleSidebar, sidebarOpen }) {
             {/* SIDEBAR TOGGLE BUTTON */}
             <button
               onClick={toggleSidebar}
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:bg-yellow-200 transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+              className="inline-flex relative right-6 items-center justify-center p-2 rounded-md text-gray-700 hover:bg-yellow-200 transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-yellow-400"
               aria-label="Toggle sidebar"
               type="button"
             >
@@ -57,10 +60,17 @@ export default function Navbar({ toggleSidebar, sidebarOpen }) {
               )}
             </button>
             
-            {/* Logo */}
+            {/* Broader Rectangular Maurya Vihar Logo */}
             <Link href="/" className="flex items-center group">
-              <div className="w-10 h-10 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-transform duration-200">
-                <span className="text-white font-bold text-xl">म</span>
+              <div className="relative">
+                <Image
+                  src={mvLogo}
+                  alt="Maurya Vihar Logo"
+                  width={80}
+                  height={48}
+                  className="w-20 h-16"
+                  priority
+                />
               </div>
               <span className="ml-3 text-gray-800 text-lg sm:text-xl font-bold group-hover:text-yellow-600 transition-colors duration-200 hidden xs:block">
                 Maurya Vihar
@@ -211,7 +221,7 @@ export default function Navbar({ toggleSidebar, sidebarOpen }) {
                 </button>
               </Link>
               
-              <Link href="/register">
+              <Link href="/student-register">
                 <button className="relative overflow-hidden bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-3 sm:px-4 lg:px-6 py-1.5 sm:py-2.5 rounded-full font-semibold hover:from-emerald-600 hover:to-teal-600 transition-all duration-300 hover:scale-110 shadow-lg hover:shadow-xl transform hover:-translate-y-1 group text-sm">
                   <span className="relative z-10 flex items-center space-x-1 sm:space-x-2">
                     <span className="hidden sm:inline lg:inline">Register</span>

@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import Image from 'next/image';
+import mvLogo from '@/public/MV_logo.jpg'   
 import {
   Mail,
   Phone,
@@ -23,34 +25,47 @@ export default function Footer() {
         {/* Main Footer Content */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
           
-          {/* Mobile Layout */}
-          <div className="md:hidden">
-            <div className="flex flex-col items-center text-center space-y-3">
-              {/* Logo and Name */}
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg">
-                  <span className="text-white font-bold text-sm">म</span>
+          {/* Mobile Layout - Fixed */}
+          <div className="block md:hidden">
+            <div className="flex flex-col items-center text-center space-y-4">
+              {/* Logo Section - Fixed */}
+              <div className="flex flex-col items-center space-y-2">
+                <div className="relative w-16 h-10">
+                  <Image
+                    src={mvLogo}
+                    alt="Maurya Vihar Logo"
+                    fill
+                    sizes="(max-width: 768px) 64px, 80px"
+                    className="rounded-lg object-cover shadow-lg"
+                    priority
+                  />
                 </div>
-                <div>
-                  <h3 className="text-sm font-bold text-white">Maurya Vihar</h3>
-                  <p className="text-sky-100 text-xs">Cultural Association</p>
+                <div className="text-center">
+                  <h3 className="text-base font-bold text-white">Maurya Vihar</h3>
+                  <p className="text-sky-100 text-sm">Cultural Association</p>
                 </div>
               </div>
               
               {/* Contact Info - Compact */}
-              <div className="flex items-center space-x-4 text-xs">
-                <a href="mailto:mauryavihar@bits.edu" className="flex items-center space-x-1 text-sky-100 hover:text-yellow-300">
-                  <Mail size={12} />
+              <div className="flex items-center justify-center space-x-6 text-sm">
+                <a 
+                  href="mailto:mauryavihar@bits.edu" 
+                  className="flex items-center space-x-2 text-sky-100 hover:text-yellow-300 transition-colors"
+                >
+                  <Mail size={14} />
                   <span>Email</span>
                 </a>
-                <a href="tel:+911596242227" className="flex items-center space-x-1 text-sky-100 hover:text-yellow-300">
-                  <Phone size={12} />
+                <a 
+                  href="tel:+911596242227" 
+                  className="flex items-center space-x-2 text-sky-100 hover:text-yellow-300 transition-colors"
+                >
+                  <Phone size={14} />
                   <span>Call</span>
                 </a>
               </div>
 
               {/* Social Media - Compact */}
-              <div className="flex space-x-2">
+              <div className="flex justify-center space-x-3">
                 {[
                   { icon: Facebook, label: 'Facebook', href: '#' },
                   { icon: Twitter, label: 'Twitter', href: '#' },
@@ -60,10 +75,10 @@ export default function Footer() {
                   <Link 
                     key={social.label}
                     href={social.href}
-                    className="w-7 h-7 bg-white/10 rounded-full flex items-center justify-center hover:bg-yellow-400 hover:text-sky-800 transition-all duration-300 backdrop-blur-sm"
+                    className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center hover:bg-yellow-400 hover:text-sky-800 transition-all duration-300 backdrop-blur-sm"
                     aria-label={social.label}
                   >
-                    <social.icon size={14} />
+                    <social.icon size={16} />
                   </Link>
                 ))}
               </div>
@@ -73,15 +88,21 @@ export default function Footer() {
           {/* Desktop Layout */}
           <div className="hidden md:grid md:grid-cols-3 gap-6">
             
-            {/* Association Info */}
+            {/* Association Info with Broader Logo */}
             <div>
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="w-10 h-10 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg">
-                  <span className="text-white font-bold text-lg">म</span>
+              <div className="flex flex-col space-y-3 mb-4">
+                <div className="relative w-20 h-12">
+                  <Image
+                    src={mvLogo}
+                    alt="Maurya Vihar Logo"
+                    fill
+                    sizes="(min-width: 768px) 80px, 64px"
+                    className="rounded-lg object-cover shadow-lg"
+                  />
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-white">Maurya Vihar</h3>
-                  <p className="text-sky-100 text-xs">Bihar & Jharkhand Cultural Association</p>
+                  <p className="text-sky-100 text-sm">Bihar & Jharkhand Cultural Association</p>
                 </div>
               </div>
               

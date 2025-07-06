@@ -22,7 +22,7 @@ export default function RootLayout({ children }) {
           
           <div className="flex pt-16">
             {/* Sidebar */}
-            <Sidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
+            <Sidebar isOpen={sidebarOpen}  />
             
             {/* Main content wrapper with smooth transition */}
             <main className={`flex-1 min-h-[calc(100vh-4rem)] ${
