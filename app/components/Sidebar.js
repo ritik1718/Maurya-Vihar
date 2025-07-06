@@ -37,95 +37,104 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
 
   return (
     <>
-      {/* Sidebar with Fade + Slide Animation */}
-      <div className={`fixed top-16 left-0 h-[calc(100vh-4rem)] w-72 bg-gradient-to-br from-white via-yellow-50 to-yellow-100 shadow-2xl border-r-4 border-yellow-200 z-30 transform ${
+      {/* Responsive Sidebar with Fade + Slide Animation */}
+      <div className={`fixed top-16 left-0 h-[calc(100vh-4rem)] w-64 sm:w-72 bg-gradient-to-br from-white via-yellow-50 to-yellow-100 shadow-2xl border-r-4 border-yellow-200 z-30 transform flex flex-col ${
         isOpen 
           ? 'translate-x-0 opacity-100 scale-100 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]' 
           : '-translate-x-full opacity-0 scale-95 transition-all duration-400 ease-[cubic-bezier(0.25,0.8,0.25,1)]'
       } lg:${isOpen ? 'relative translate-x-0 opacity-100 scale-100' : 'hidden'}`}>
         
-        {/* Header */}
-      
+        {/* Header - Mobile Close Button */}
+     
 
         {/* User Profile Section */}
-        <div className="p-4 border-b border-yellow-200">
-          <div className="flex items-center space-x-3 p-3 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200">
-            <div className="w-10 h-10 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center">
-              <User size={20} className="text-white" />
+        <div className="p-3 sm:p-4 border-b border-yellow-200 flex-shrink-0">
+          <div className="flex items-center space-x-2 sm:space-x-3 p-2 sm:p-3 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center">
+              <User size={16} className="text-white sm:hidden" />
+              <User size={20} className="text-white hidden sm:block" />
             </div>
-            <div>
-              <p className="text-sm font-semibold text-gray-800">Welcome Back!</p>
-              <p className="text-xs text-gray-600">Maurya Vihar Member</p>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs sm:text-sm font-semibold text-gray-800 truncate">Welcome Back!</p>
+              <p className="text-xs text-gray-600 truncate">Maurya Vihar Member</p>
             </div>
           </div>
         </div>
 
-        {/* Navigation Items */}
-        <nav className="mt-6 px-4 space-y-2 overflow-y-auto max-h-[calc(100vh-20rem)]">
-          {sidebarItems.map((item) => {
-            const isActive = pathname === item.href;
-            const IconComponent = item.icon;
-            return (
-              <div
-                key={item.name}
-                className="relative"
-                onMouseEnter={() => setHoveredItem(item.name)}
-                onMouseLeave={() => setHoveredItem(null)}
-              >
-                <Link href={item.href}>
-                  <button
-                    onClick={handleNavClick}
-                    className={`group w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-300 transform hover:scale-105 ${
-                      isActive
-                        ? 'bg-gradient-to-r from-yellow-400 to-yellow-500 text-white shadow-lg'
-                        : 'text-gray-700 hover:bg-white hover:shadow-md'
-                    }`}
-                  >
-                    <div className={`p-2 rounded-lg mr-3 transition-all duration-300 ${
-                      isActive
-                        ? 'bg-white bg-opacity-20'
-                        : `bg-gradient-to-r ${item.color} text-white group-hover:scale-110`
-                    }`}>
-                      <IconComponent size={20} />
-                    </div>
-                    <span className="flex-1 text-left">{item.name}</span>
-                    <ChevronRight size={16} className={`transition-transform duration-300 ${
-                      isActive ? 'rotate-90' : 'group-hover:translate-x-1'
-                    }`} />
-                  </button>
-                </Link>
-                
-                {/* Hover Effect */}
-                {hoveredItem === item.name && !isActive && (
-                  <div className="absolute left-0 top-0 w-1 h-full bg-gradient-to-b from-yellow-400 to-yellow-600 rounded-r-full animate-pulse"></div>
-                )}
-              </div>
-            );
-          })}
-        </nav>
+        {/* Scrollable Content Area */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Navigation Items */}
+          <nav className="flex-1 mt-4 sm:mt-6 px-3 sm:px-4 space-y-1 sm:space-y-2 overflow-y-auto">
+            {sidebarItems.map((item) => {
+              const isActive = pathname === item.href;
+              const IconComponent = item.icon;
+              return (
+                <div
+                  key={item.name}
+                  className="relative"
+                  onMouseEnter={() => setHoveredItem(item.name)}
+                  onMouseLeave={() => setHoveredItem(null)}
+                >
+                  <Link href={item.href}>
+                    <button
+                      onClick={handleNavClick}
+                      className={`group w-full flex items-center px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium rounded-lg sm:rounded-xl transition-all duration-300 transform hover:scale-105 ${
+                        isActive
+                          ? 'bg-gradient-to-r from-yellow-400 to-yellow-500 text-white shadow-lg'
+                          : 'text-gray-700 hover:bg-white hover:shadow-md'
+                      }`}
+                    >
+                      <div className={`p-1.5 sm:p-2 rounded-lg mr-2 sm:mr-3 transition-all duration-300 ${
+                        isActive
+                          ? 'bg-white bg-opacity-20'
+                          : `bg-gradient-to-r ${item.color} text-white group-hover:scale-110`
+                      }`}>
+                        <IconComponent size={16} className="sm:hidden" />
+                        <IconComponent size={20} className="hidden sm:block" />
+                      </div>
+                      <span className="flex-1 text-left truncate">{item.name}</span>
+                      <ChevronRight size={14} className={`transition-transform duration-300 sm:hidden ${
+                        isActive ? 'rotate-90' : 'group-hover:translate-x-1'
+                      }`} />
+                      <ChevronRight size={16} className={`transition-transform duration-300 hidden sm:block ${
+                        isActive ? 'rotate-90' : 'group-hover:translate-x-1'
+                      }`} />
+                    </button>
+                  </Link>
+                  
+                  {/* Hover Effect */}
+                  {hoveredItem === item.name && !isActive && (
+                    <div className="absolute left-0 top-0 w-1 h-full bg-gradient-to-b from-yellow-400 to-yellow-600 rounded-r-full animate-pulse"></div>
+                  )}
+                </div>
+              );
+            })}
+          </nav>
 
-        {/* Association Info Section */}
-        <div className="mt-8 mx-4 relative bottom-6 p-4 bg-white/60 rounded-xl border border-yellow-200">
-          <h3 className="text-gray-800 font-semibold mb-2">About Us</h3>
-          <p className="text-gray-600 text-sm">
-            Bihar & Jharkhand Cultural Association at BITS Pilani
-          </p>
+          {/* Association Info Section */}
+          <div className="mx-3 sm:mx-4 mb-3 sm:mb-4 p-3 sm:p-4 bg-white/60 rounded-lg sm:rounded-xl border border-yellow-200 flex-shrink-0">
+            <h3 className="text-gray-800 font-semibold mb-2 text-xs sm:text-sm">About Us</h3>
+            <p className="text-gray-600 text-xs leading-relaxed">
+              Bihar & Jharkhand Cultural Association at BITS Pilani
+            </p>
+          </div>
         </div>
 
-        {/* Bottom Section */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-yellow-100 to-transparent">
-          <div className="space-y-2">
-            <button className="w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl text-gray-700 hover:bg-white hover:shadow-md transition-all duration-200 group">
-              <div className="p-2 rounded-lg mr-3 bg-gradient-to-r from-gray-400 to-gray-600 text-white group-hover:scale-110 transition-transform">
-                <Settings size={16} />
+        {/* Bottom Section - Fixed at bottom */}
+        <div className="p-3 sm:p-4 bg-gradient-to-t from-yellow-100 to-transparent flex-shrink-0">
+          <div className="space-y-1 sm:space-y-2">
+            <button className="w-full flex items-center px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium rounded-lg sm:rounded-xl text-gray-700 hover:bg-white hover:shadow-md transition-all duration-200 group">
+              <div className="p-1.5 sm:p-2 rounded-lg mr-2 sm:mr-3 bg-gradient-to-r from-gray-400 to-gray-600 text-white group-hover:scale-110 transition-transform">
+                <Settings size={14} className="sm:hidden" />
+                <Settings size={16} className="hidden sm:block" />
               </div>
-              <span>Settings</span>
+              <span className="truncate">Settings</span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* Mobile Overlay */}
+      {/* Responsive Mobile Overlay */}
       <div
         className={`fixed inset-0 bg-black z-20 lg:hidden backdrop-blur-sm transition-all duration-700 ease-in-out ${
           isOpen 
