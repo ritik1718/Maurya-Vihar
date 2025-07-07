@@ -10,6 +10,15 @@ export async function POST(req) {
     // Connect to MongoDB
     await connectDB();
 
+    // Check if student already exists by email
+    const existingStudent = await Student.findOne({ email: body.email });
+    if (existingStudent) {
+      return NextResponse.json(
+        { error: 'User already registered with this email' },
+        { status: 400 }
+      );
+    }
+
     // Create new student
     const newStudent = new Student({
       name: body.name,
@@ -22,15 +31,21 @@ export async function POST(req) {
       homeAddress: body.homeAddress,
       department: body.department || '',
       clubs: body.clubs || [],
-      profilePicture: body.profilePicture || null, // base64 string or URL
+      profilePicture: body.profilePicture || null,
     });
 
     // Save to MongoDB
     await newStudent.save();
 
-    return NextResponse.json({ message: 'Registration successful' }, { status: 201 });
+    return NextResponse.json(
+      { message: 'Registration successful' },
+      { status: 201 }
+    );
   } catch (error) {
     console.error('POST /api/register error:', error);
-    return NextResponse.json({ error: 'Registration failed', details: error.message }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Already submited the form wait for approval', details: error.message },
+      { status: 500 }
+    );
   }
 }

@@ -8,11 +8,9 @@ import {
   GraduationCap,
   Users,
   UserCheck,
-  X,
   Home,
   ChevronRight,
   User,
-  Bell,
   Settings,
 } from 'lucide-react';
 
@@ -30,22 +28,16 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
   ];
 
   const handleNavClick = () => {
-    if (toggleSidebar) {
-      toggleSidebar();
-    }
+    if (toggleSidebar) toggleSidebar();
   };
 
   return (
     <>
-      {/* Responsive Sidebar with Fade + Slide Animation */}
       <div className={`fixed top-16 left-0 h-[calc(100vh-4rem)] w-64 sm:w-72 bg-gradient-to-br from-white via-yellow-50 to-yellow-100 shadow-2xl border-r-4 border-yellow-200 z-30 transform flex flex-col ${
         isOpen 
           ? 'translate-x-0 opacity-100 scale-100 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]' 
           : '-translate-x-full opacity-0 scale-95 transition-all duration-400 ease-[cubic-bezier(0.25,0.8,0.25,1)]'
       } lg:${isOpen ? 'relative translate-x-0 opacity-100 scale-100' : 'hidden'}`}>
-        
-        {/* Header - Mobile Close Button */}
-     
 
         {/* User Profile Section */}
         <div className="p-3 sm:p-4 border-b border-yellow-200 flex-shrink-0">
@@ -61,9 +53,8 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
           </div>
         </div>
 
-        {/* Scrollable Content Area */}
+        {/* Navigation Items */}
         <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Navigation Items */}
           <nav className="flex-1 mt-4 sm:mt-6 px-3 sm:px-4 space-y-1 sm:space-y-2 overflow-y-auto">
             {sidebarItems.map((item) => {
               const isActive = pathname === item.href;
@@ -101,8 +92,6 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
                       }`} />
                     </button>
                   </Link>
-                  
-                  {/* Hover Effect */}
                   {hoveredItem === item.name && !isActive && (
                     <div className="absolute left-0 top-0 w-1 h-full bg-gradient-to-b from-yellow-400 to-yellow-600 rounded-r-full animate-pulse"></div>
                   )}
@@ -111,7 +100,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
             })}
           </nav>
 
-          {/* Association Info Section */}
+          {/* About Us Section */}
           <div className="mx-3 sm:mx-4 mb-3 sm:mb-4 p-3 sm:p-4 bg-white/60 rounded-lg sm:rounded-xl border border-yellow-200 flex-shrink-0">
             <h3 className="text-gray-800 font-semibold mb-2 text-xs sm:text-sm">About Us</h3>
             <p className="text-gray-600 text-xs leading-relaxed">
@@ -120,7 +109,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
           </div>
         </div>
 
-        {/* Bottom Section - Fixed at bottom */}
+        {/* Settings */}
         <div className="p-3 sm:p-4 bg-gradient-to-t from-yellow-100 to-transparent flex-shrink-0">
           <div className="space-y-1 sm:space-y-2">
             <button className="w-full flex items-center px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium rounded-lg sm:rounded-xl text-gray-700 hover:bg-white hover:shadow-md transition-all duration-200 group">
@@ -134,15 +123,13 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
         </div>
       </div>
 
-      {/* Responsive Mobile Overlay */}
-      <div
-        className={`fixed inset-0 bg-black z-20 lg:hidden backdrop-blur-sm transition-all duration-700 ease-in-out ${
-          isOpen 
-            ? 'opacity-50 visibility-visible' 
-            : 'opacity-0 visibility-hidden'
-        }`}
-        onClick={toggleSidebar}
-      />
+      {/* Mobile Overlay (only when sidebar is open) */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black z-20 lg:hidden backdrop-blur-sm opacity-50"
+          onClick={toggleSidebar}
+        />
+      )}
     </>
   );
 }

@@ -1,43 +1,37 @@
 'use client'
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
+import mvLogo from '@/public/MV_logo.jpg'  
+import MakarSankranti from '@/public/MakarSankranti.png'   
+import mvPresentation from '@/public/Presentation.png'   
+import TriptiGrub from '@/public/Triptigrub_menu.jpg'
+import RoobarooPoster from '@/public/roobarooposter.jpg'   
+
+
+import { toast } from 'react-toastify';
 import Image from 'next/image';
 import {
-  User,
-  IdCard,
-  Building,
-  Home,
-  Phone,
-  Mail,
-  Calendar,
-  MapPin,
-  Users,
-  GraduationCap,
-  CheckCircle,
-  AlertCircle,
-  Camera,
-  Upload,
-  Loader2
+  User, IdCard, Building, Home, Phone, Mail, Calendar,
+  MapPin, Users, GraduationCap, CheckCircle, AlertCircle,
+  Camera, Upload, Loader2, X
 } from 'lucide-react';
 
 export default function StudentRegistration() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitSuccess, setSubmitSuccess] = useState(false);
   const [profilePreview, setProfilePreview] = useState(null);
   const [uploadingImage, setUploadingImage] = useState(false);
-  const [submitError, setSubmitError] = useState(null);
+  const [selectedImageFile, setSelectedImageFile] = useState(null);
 
-  // Sample images for slideshow
   const slideImages = [
-    '/images/cultural-event-1.jpg',
-    '/images/cultural-event-2.jpg',
-    '/images/campus-life.jpg',
-    '/images/maurya-vihar-1.jpg',
-    '/images/maurya-vihar-2.jpg'
-  ];
+  mvPresentation,
+  RoobarooPoster,
+  mvLogo,
+  TriptiGrub,
+  MakarSankranti,
+];
 
-  // Auto-slide functionality
+
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % slideImages.length);
@@ -45,103 +39,64 @@ export default function StudentRegistration() {
     return () => clearInterval(timer);
   }, [slideImages.length]);
 
-  // React Hook Form setup
   const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    reset,
-    setValue,
-    watch
-  } = useForm({
-    mode: 'onChange'
-  });
+    register, handleSubmit, formState: { errors }, reset, setValue
+  } = useForm({ mode: 'onChange' });
 
-  // Upload image to Cloudinary
-  const uploadToCloudinary = async (file) => {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET);
-    formData.append('folder', 'maurya-vihar/profiles');
-
-    try {
-      const response = await fetch(
-        `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
-        {
-          method: 'POST',
-          body: formData,
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Failed to upload image');
-      }
-
-      const data = await response.json();
-      return data.secure_url;
-    } catch (error) {
-      console.error('Cloudinary upload error:', error);
-      throw error;
-    }
-  };
-
-  // Handle profile picture upload
-  const handleProfilePictureChange = async (e) => {
+  const handleProfilePictureChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Validate file type
       const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
       if (!validTypes.includes(file.type)) {
-        alert('Please select a valid image file (JPEG, PNG, WebP)');
+        toast.error('Please select a valid image file (JPEG, PNG, WebP)');
         return;
       }
-
-      // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
-        alert('File size must be less than 5MB');
+        toast.error('File size must be less than 5MB');
         return;
       }
-
-      setUploadingImage(true);
-      
-      try {
-        // Create preview URL
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          setProfilePreview(e.target.result);
-        };
-        reader.readAsDataURL(file);
-
-        // Upload to Cloudinary
-        const cloudinaryUrl = await uploadToCloudinary(file);
-        setValue('profilePicture', cloudinaryUrl);
-        
-      } catch (error) {
-        console.error('Upload failed:', error);
-        alert('Failed to upload image. Please try again.');
-        setProfilePreview(null);
-        setValue('profilePicture', null);
-      } finally {
-        setUploadingImage(false);
-      }
+      const reader = new FileReader();
+      reader.onload = (e) => setProfilePreview(e.target.result);
+      reader.readAsDataURL(file);
+      setSelectedImageFile(file);
     }
   };
 
-  // Remove profile picture
   const removeProfilePicture = () => {
     setProfilePreview(null);
-    setValue('profilePicture', null);
+    setSelectedImageFile(null);
     const fileInput = document.getElementById('profilePicture');
     if (fileInput) fileInput.value = '';
+    toast.info('Profile picture removed');
   };
 
-  // Form submission handler
   const onSubmit = async (data) => {
     setIsSubmitting(true);
-    setSubmitError(null);
-    
+
     try {
-      // Prepare form data for API
+      let imageUrl = null;
+
+      if (selectedImageFile) {
+        setUploadingImage(true);
+        const formData = new FormData();
+        formData.append('file', selectedImageFile);
+        formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET);
+        formData.append('folder', 'maurya-vihar/profiles');
+
+        const uploadResponse = await fetch(
+          `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
+          {
+            method: 'POST',
+            body: formData,
+          }
+        );
+
+        if (!uploadResponse.ok) throw new Error('Failed to upload image');
+
+        const uploadData = await uploadResponse.json();
+        imageUrl = uploadData.secure_url;
+      }
+
       const formData = {
         name: data.name,
         bitsId: data.bitsId,
@@ -153,13 +108,10 @@ export default function StudentRegistration() {
         homeAddress: data.homeAddress,
         department: data.department || null,
         clubs: data.clubs ? (Array.isArray(data.clubs) ? data.clubs : [data.clubs]) : [],
-        profilePicture: data.profilePicture || null
+        profilePicture: imageUrl,
       };
 
-      console.log('Submitting data:', formData);
-
-      // Submit to API
-      const response = await fetch('http://localhost:3000/api/post-member', {
+      const response = await fetch('/api/post-member', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -167,42 +119,51 @@ export default function StudentRegistration() {
         body: JSON.stringify(formData),
       });
 
+      const result = await response.json();
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Registration failed');
+        if (result?.error?.includes('email')) {
+          toast.error('📧 Email already registered.');
+        } else if (result?.error?.includes('bitsId')) {
+          toast.error('🆔 BITS ID already exists.');
+        } else if (result?.error?.includes('mobile')) {
+          toast.error('📱 Mobile number already used.');
+        } else {
+          toast.error(result?.error || '❌ Submission failed.');
+        }
+        return;
       }
 
-      const result = await response.json();
-      console.log('Registration successful:', result);
-      
-      setSubmitSuccess(true);
+      toast.success('🎉 Registration successful!');
       reset();
       setProfilePreview(null);
-      
-      // Hide success message after 5 seconds
-      setTimeout(() => setSubmitSuccess(false), 5000);
-      
+      setSelectedImageFile(null);
+
     } catch (error) {
-      console.error('Registration failed:', error);
-      setSubmitError(error.message || 'Registration failed. Please try again.');
+      console.error('Submission error:', error);
+      toast.error('⚠️ Something went wrong. Please try again.');
     } finally {
       setIsSubmitting(false);
+      setUploadingImage(false);
     }
   };
 
-  // Options data
+
+  // Hostel options
   const hostels = [
     'Vyas Bhawan', 'Shankar Bhawan', 'Gandhi Bhawan', 'Budh Bhawan',
     'Ashoka Bhawan', 'Ram Bhawan', 'Krishna Bhawan', 'Meera Bhawan',
     'Saraswati Bhawan', 'Malviya Bhawan'
   ];
 
+  // Department options
   const departments = [
     'Computer Science', 'Electronics & Communication', 'Mechanical',
     'Civil', 'Chemical', 'Electrical & Electronics', 'Biotechnology',
     'Mathematics', 'Physics', 'Chemistry', 'Economics', 'Management'
   ];
 
+  // Club options
   const clubs = [
     'Cultural Club', 'Technical Club', 'Sports Club', 'Literary Club',
     'Photography Club', 'Music Club', 'Dance Club', 'Drama Club',
@@ -289,22 +250,6 @@ export default function StudentRegistration() {
                 </div>
               </div>
 
-              {/* Success Message */}
-              {submitSuccess && (
-                <div className="mx-6 mt-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center space-x-3">
-                  <CheckCircle className="h-5 w-5 text-green-500" />
-                  <span className="text-green-700 font-medium">Registration submitted successfully!</span>
-                </div>
-              )}
-
-              {/* Error Message */}
-              {submitError && (
-                <div className="mx-6 mt-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center space-x-3">
-                  <AlertCircle className="h-5 w-5 text-red-500" />
-                  <span className="text-red-700 font-medium">{submitError}</span>
-                </div>
-              )}
-
               {/* Registration Form */}
               <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
                 
@@ -320,7 +265,7 @@ export default function StudentRegistration() {
                     <div className="relative">
                       <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-yellow-400 shadow-lg bg-gray-100 flex items-center justify-center">
                         {uploadingImage ? (
-                          <div className="text-yellow-500">
+                          <div className="text-yellow-500 text-center">
                             <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
                             <span className="text-sm">Uploading...</span>
                           </div>
@@ -345,7 +290,7 @@ export default function StudentRegistration() {
                           onClick={removeProfilePicture}
                           className="absolute -top-2 -right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
                         >
-                          ×
+                          <X className="h-4 w-4" />
                         </button>
                       )}
                     </div>
@@ -582,7 +527,7 @@ export default function StudentRegistration() {
                           type="text"
                           {...register('roomNo', {
                             required: 'Room number is required',
-                         
+                        
                           })}
                           className={`w-full pl-10 pr-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all duration-200 ${
                             errors.roomNo ? 'border-red-300 bg-red-50' : 'border-gray-200 focus:border-yellow-400'
