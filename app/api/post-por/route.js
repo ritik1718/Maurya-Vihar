@@ -26,7 +26,8 @@ export async function POST(req) {
       position: body.position,
       department: body.department || '',
       profilePicture: body.profilePicture || null,
-      description: body.description || ''
+      description: body.description || '',
+      linkedin: body.linkedin
     });
 
     await newPOR.save();

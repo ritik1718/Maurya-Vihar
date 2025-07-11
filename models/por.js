@@ -43,6 +43,11 @@ const porSchema = new mongoose.Schema(
       default: '',
       trim: true,
     },
+     linkedin: {
+      type: String,
+      default: '',
+      trim: true,
+    },
   },
   { timestamps: true }
 );

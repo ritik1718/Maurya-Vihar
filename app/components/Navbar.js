@@ -75,10 +75,10 @@ export default function Navbar({ toggleSidebar, sidebarOpen }) {
           </div>
 
           {/* Center Search */}
-          <div className="hidden md:flex flex-1 max-w-md mx-8">
+          <div className="hidden md:flex text-black flex-1 max-w-md mx-8">
             <div className="w-full relative">
               <div className={`relative transition-all duration-300 ${isSearchFocused ? 'transform scale-105' : ''}`}>
-                <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <Search size={20} className="absolute text-black left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <input
                   type="text"
                   value={searchQuery}
@@ -163,8 +163,10 @@ export default function Navbar({ toggleSidebar, sidebarOpen }) {
                   </span>
                   <div className="absolute inset-0 bg-gradient-to-r from-pink-500 to-purple-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 </button>
+   </div>
+            )}
 
-                <Link href="/student-register">
+   <Link href="/student-register">
                   <button className="relative overflow-hidden bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-3 sm:px-4 lg:px-6 py-1.5 sm:py-2.5 rounded-full font-semibold hover:from-emerald-600 hover:to-teal-600 transition-all duration-300 hover:scale-110 shadow-lg hover:shadow-xl transform hover:-translate-y-1 group text-sm">
                     <span className="relative z-10 flex items-center space-x-1 sm:space-x-2">
                       <span className="hidden sm:inline lg:inline">Register</span>
@@ -174,8 +176,7 @@ export default function Navbar({ toggleSidebar, sidebarOpen }) {
                     <div className="absolute inset-0 bg-gradient-to-r from-teal-500 to-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   </button>
                 </Link>
-              </div>
-            )}
+
           </div>
         </div>
       </div>

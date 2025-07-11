@@ -171,7 +171,7 @@ export default function StudentRegistration() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-orange-50 to-white">
+    <div className="min-h-screen bg-gradient-to-br from-yellow-50 text-black via-orange-50 to-white">
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-7xl mx-auto">
           
