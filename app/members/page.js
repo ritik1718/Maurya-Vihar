@@ -102,8 +102,8 @@ export default function OurTeamPage() {
 
       try {
         const [porResponse, memberResponse] = await Promise.all([
-          fetch('http://localhost:3000/api/post-por'),
-          fetch('http://localhost:3000/api/post-member')
+          fetch('/api/post-por'),
+          fetch('/api/post-member')
         ]);
 
         if (!porResponse.ok) throw new Error('Failed to fetch POR data');
