@@ -48,8 +48,14 @@ const StudentSchema = new mongoose.Schema({
     type: [String], // Array of clubs
     default: []
   },
+   approved: {
+      type: Boolean,
+      default: false,
+    },
+    
   profilePicture: {
-    type: String // URL or base64 string (or path in filesystem if you save locally)
+    type: String, // URL or base64 string (or path in filesystem if you save locally)
+    required: true
   }
 }, { timestamps: true });
 

@@ -112,13 +112,13 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
         {/* Settings */}
         <div className="p-3 sm:p-4 bg-gradient-to-t from-yellow-100 to-transparent flex-shrink-0">
           <div className="space-y-1 sm:space-y-2">
-            <button className="w-full flex items-center px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium rounded-lg sm:rounded-xl text-gray-700 hover:bg-white hover:shadow-md transition-all duration-200 group">
+         <Link href="/controls">   <button className="w-full flex items-center px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium rounded-lg sm:rounded-xl text-gray-700 hover:bg-white hover:shadow-md transition-all duration-200 group">
               <div className="p-1.5 sm:p-2 rounded-lg mr-2 sm:mr-3 bg-gradient-to-r from-gray-400 to-gray-600 text-white group-hover:scale-110 transition-transform">
                 <Settings size={14} className="sm:hidden" />
                 <Settings size={16} className="hidden sm:block" />
               </div>
               <span className="truncate">Settings</span>
-            </button>
+            </button> </Link>
           </div>
         </div>
       </div>

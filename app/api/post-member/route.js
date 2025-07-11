@@ -49,3 +49,23 @@ export async function POST(req) {
     );
   }
 }
+
+// GET - Fetch All Registered Students
+export async function GET() {
+  try {
+    await connectDB();
+
+    const students = await Student.find().sort({ createdAt: -1 });
+
+    return NextResponse.json({ data: students }, { status: 200 });
+  } catch (error) {
+    console.error('GET /api/register error:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch students', details: error.message },
+      { status: 500 }
+    );
+  }
+}
+
+
+

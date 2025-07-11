@@ -617,7 +617,7 @@ export default function StudentRegistration() {
 
                 {/* Submit Button */}
                 <div className="pt-6">
-                  <button
+            {   profilePreview!==null &&   <button
                     type="submit"
                     disabled={isSubmitting || uploadingImage}
                     className={`w-full py-4 px-6 rounded-lg font-semibold text-white transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-yellow-300 ${
@@ -639,7 +639,7 @@ export default function StudentRegistration() {
                     ) : (
                       'Submit Registration'
                     )}
-                  </button>
+                  </button>  }
                 </div>
               </form>
             </div>
