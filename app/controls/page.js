@@ -108,6 +108,13 @@ const StudentManagement = () => {
               <CalendarPlus size={16} /> Event Creation
             </button>
           </Link>
+            <Link href="/upcoming-event">
+            <button className={navButtonStyle}>
+              <CalendarPlus size={16} /> Upcoming Event
+            </button>
+          </Link>
+
+          
           <Link href="/alumni-creation">
             {/* Corrected text for the button */}
             <button className={navButtonStyle}>

@@ -1,36 +1,37 @@
 'use client'
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
+import { useSession, signIn, signOut } from 'next-auth/react';
 import mvLogo from '@/public/MV_logo.jpg'  
 import MakarSankranti from '@/public/MakarSankranti.png'   
 import mvPresentation from '@/public/Presentation.png'   
 import TriptiGrub from '@/public/Triptigrub_menu.jpg'
 import RoobarooPoster from '@/public/roobarooposter.jpg'   
 
-
 import { toast } from 'react-toastify';
 import Image from 'next/image';
 import {
   User, IdCard, Building, Home, Phone, Mail, Calendar,
   MapPin, Users, GraduationCap, CheckCircle, AlertCircle,
-  Camera, Upload, Loader2, X
+  Camera, Upload, Loader2, X, LogOut, LogIn
 } from 'lucide-react';
 
 export default function StudentRegistration() {
+  const { data: session, status } = useSession();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [profilePreview, setProfilePreview] = useState(null);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [selectedImageFile, setSelectedImageFile] = useState(null);
+  const [uploadedImagePublicId, setUploadedImagePublicId] = useState(null); // Track uploaded image public_id
 
   const slideImages = [
-  mvPresentation,
-  RoobarooPoster,
-  mvLogo,
-  TriptiGrub,
-  MakarSankranti,
-];
-
+    mvPresentation,
+    RoobarooPoster,
+    mvLogo,
+    TriptiGrub,
+    MakarSankranti,
+  ];
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -42,6 +43,38 @@ export default function StudentRegistration() {
   const {
     register, handleSubmit, formState: { errors }, reset, setValue
   } = useForm({ mode: 'onChange' });
+
+  // Set email from session when user logs in
+  useEffect(() => {
+    if (session?.user?.email) {
+      setValue('email', session.user.email);
+    }
+  }, [session, setValue]);
+
+  // Helper function to delete image from Cloudinary
+  const deleteCloudinaryImage = async (publicId) => {
+    if (!publicId) return;
+    
+    try {
+      const response = await fetch('/api/cloudinary-delete', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ public_id: publicId }),
+      });
+
+      const result = await response.json();
+      
+      if (response.ok) {
+        console.log('Image deleted from Cloudinary:', result.message);
+      } else {
+        console.error('Failed to delete image from Cloudinary:', result.message);
+      }
+    } catch (error) {
+      console.error('Error deleting image from Cloudinary:', error);
+    }
+  };
 
   const handleProfilePictureChange = (e) => {
     const file = e.target.files[0];
@@ -55,6 +88,13 @@ export default function StudentRegistration() {
         toast.error('File size must be less than 5MB');
         return;
       }
+
+      // If there's already an uploaded image, delete it from Cloudinary
+      if (uploadedImagePublicId) {
+        deleteCloudinaryImage(uploadedImagePublicId);
+        setUploadedImagePublicId(null);
+      }
+
       const reader = new FileReader();
       reader.onload = (e) => setProfilePreview(e.target.result);
       reader.readAsDataURL(file);
@@ -62,7 +102,13 @@ export default function StudentRegistration() {
     }
   };
 
-  const removeProfilePicture = () => {
+  const removeProfilePicture = async () => {
+    // Delete from Cloudinary if image was uploaded
+    if (uploadedImagePublicId) {
+      await deleteCloudinaryImage(uploadedImagePublicId);
+      setUploadedImagePublicId(null);
+    }
+
     setProfilePreview(null);
     setSelectedImageFile(null);
     const fileInput = document.getElementById('profilePicture');
@@ -72,10 +118,11 @@ export default function StudentRegistration() {
 
   const onSubmit = async (data) => {
     setIsSubmitting(true);
+    let imageUrl = null;
+    let tempUploadedPublicId = null;
 
     try {
-      let imageUrl = null;
-
+      // Upload image to Cloudinary if selected
       if (selectedImageFile) {
         setUploadingImage(true);
         const formData = new FormData();
@@ -91,13 +138,18 @@ export default function StudentRegistration() {
           }
         );
 
-        if (!uploadResponse.ok) throw new Error('Failed to upload image');
+        if (!uploadResponse.ok) {
+          throw new Error('Failed to upload image');
+        }
 
         const uploadData = await uploadResponse.json();
         imageUrl = uploadData.secure_url;
+        tempUploadedPublicId = uploadData.public_id;
+        setUploadedImagePublicId(tempUploadedPublicId);
+        setUploadingImage(false);
       }
 
-      const formData = {
+      const formDataToSubmit = {
         name: data.name,
         bitsId: data.bitsId,
         dateOfBirth: data.dateOfBirth,
@@ -109,6 +161,8 @@ export default function StudentRegistration() {
         department: data.department || null,
         clubs: data.clubs ? (Array.isArray(data.clubs) ? data.clubs : [data.clubs]) : [],
         profilePicture: imageUrl,
+        profilePicturePublicId: tempUploadedPublicId, // Store public_id for future deletion
+        sessionEmail: session?.user?.email,
       };
 
       const response = await fetch('/api/post-member', {
@@ -116,12 +170,18 @@ export default function StudentRegistration() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(formDataToSubmit),
       });
 
       const result = await response.json();
 
       if (!response.ok) {
+        // If registration fails and we uploaded an image, delete it
+        if (tempUploadedPublicId) {
+          await deleteCloudinaryImage(tempUploadedPublicId);
+          setUploadedImagePublicId(null);
+        }
+
         if (result?.error?.includes('email')) {
           toast.error('📧 Email already registered.');
         } else if (result?.error?.includes('bitsId')) {
@@ -134,20 +194,28 @@ export default function StudentRegistration() {
         return;
       }
 
+      // Registration successful
       toast.success('🎉 Registration successful!');
       reset();
       setProfilePreview(null);
       setSelectedImageFile(null);
+      setUploadedImagePublicId(null);
 
     } catch (error) {
       console.error('Submission error:', error);
+      
+      // If there was an error and we uploaded an image, clean it up
+      if (tempUploadedPublicId) {
+        await deleteCloudinaryImage(tempUploadedPublicId);
+        setUploadedImagePublicId(null);
+      }
+      
       toast.error('⚠️ Something went wrong. Please try again.');
     } finally {
       setIsSubmitting(false);
       setUploadingImage(false);
     }
   };
-
 
   // Hostel options
   const hostels = [
@@ -170,9 +238,141 @@ export default function StudentRegistration() {
     'Coding Club', 'Robotics Club', 'Environment Club', 'Social Service Club'
   ];
 
+  // Show loading state while session is loading
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-orange-50 to-white flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-12 w-12 animate-spin text-yellow-500 mx-auto mb-4" />
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show login prompt if not authenticated
+  if (!session) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-orange-50 to-white">
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-4xl mx-auto">
+            
+            {/* Slideshow for non-authenticated users */}
+            <div className="mb-8">
+              <div className="relative h-96 rounded-2xl overflow-hidden shadow-2xl">
+                {slideImages.map((image, index) => (
+                  <div
+                    key={index}
+                    className={`absolute inset-0 transition-opacity duration-1000 ${
+                      index === currentSlide ? 'opacity-100' : 'opacity-0'
+                    }`}
+                  >
+                    <Image
+                      src={image}
+                      alt={`Maurya Vihar ${index + 1}`}
+                      fill
+                      className="object-cover"
+                      priority={index === 0}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                  </div>
+                ))}
+                
+                {/* Slide Indicators */}
+                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+                  {slideImages.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setCurrentSlide(index)}
+                      className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                        index === currentSlide 
+                          ? 'bg-yellow-400 scale-125' 
+                          : 'bg-white/50 hover:bg-white/70'
+                      }`}
+                    />
+                  ))}
+                </div>
+
+                {/* Overlay Content */}
+                <div className="absolute bottom-8 left-8 right-8 text-white">
+                  <h2 className="text-2xl font-bold mb-2">Join Maurya Vihar</h2>
+                  <p className="text-white/90">
+                    Bihar & Jharkhand Cultural Association at BITS Pilani
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Login Card */}
+            <div className="bg-white rounded-2xl shadow-2xl border border-yellow-200 overflow-hidden max-w-md mx-auto">
+              <div className="bg-gradient-to-r from-yellow-400 to-orange-400 p-6 text-white text-center">
+                <LogIn className="h-12 w-12 mx-auto mb-4" />
+                <h1 className="text-2xl font-bold">Welcome to Maurya Vihar</h1>
+                <p className="text-yellow-100 mt-2">Please login to register</p>
+              </div>
+              
+              <div className="p-8 text-center">
+                <p className="text-gray-600 mb-6">
+                  You need to login with your Google account to access the registration form.
+                </p>
+                
+                <button
+                  onClick={() => signIn('google')}
+                  className="w-full bg-gradient-to-r from-yellow-400 to-orange-400 hover:from-yellow-500 hover:to-orange-500 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 flex items-center justify-center space-x-2 hover:scale-105"
+                >
+                  <svg className="w-5 h-5" viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                    <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                  </svg>
+                  <span>Continue with Google</span>
+                </button>
+                
+                <p className="text-xs text-gray-500 mt-4">
+                  By continuing, you agree to our terms and conditions.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Main registration form for authenticated users
   return (
     <div className="min-h-screen bg-gradient-to-br from-yellow-50 text-black via-orange-50 to-white">
       <div className="container mx-auto px-4 py-8">
+        
+        {/* User Info Header */}
+        <div className="max-w-7xl mx-auto mb-6">
+          <div className="bg-white rounded-lg shadow-md p-4 flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              {session?.user?.image && (
+                <img
+                  src={session.user.image}
+                  alt="Profile"
+                  className="w-10 h-10 rounded-full"
+                />
+              )}
+              <div>
+                <p className="font-medium text-gray-800">
+                  Welcome, {session?.user?.name}
+                </p>
+                <p className="text-sm text-gray-600">{session?.user?.email}</p>
+              </div>
+            </div>
+            <button
+              onClick={() => signOut()}
+              className="flex items-center space-x-2 text-red-600 hover:text-red-700 transition-colors"
+            >
+              <LogOut className="h-4 w-4" />
+              <span>Logout</span>
+            </button>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-7xl mx-auto">
           
           {/* Left Section - Image Slideshow (Hidden on Mobile) */}
@@ -321,6 +521,7 @@ export default function StudentRegistration() {
                   </div>
                 </div>
 
+                {/* Rest of the form sections remain the same as in the previous code */}
                 {/* Personal Information Section */}
                 <div>
                   <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center space-x-2">
@@ -365,7 +566,6 @@ export default function StudentRegistration() {
                           type="text"
                           {...register('bitsId', {
                             required: 'BITS ID is required',
-                          
                           })}
                           className={`w-full pl-10 pr-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all duration-200 ${
                             errors.bitsId ? 'border-red-300 bg-red-50' : 'border-gray-200 focus:border-yellow-400'
@@ -452,7 +652,7 @@ export default function StudentRegistration() {
                       )}
                     </div>
 
-                    {/* Email */}
+                    {/* Email - Pre-filled and readonly */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Email Address *
@@ -468,18 +668,14 @@ export default function StudentRegistration() {
                               message: 'Enter valid email address' 
                             }
                           })}
-                          className={`w-full pl-10 pr-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all duration-200 ${
-                            errors.email ? 'border-red-300 bg-red-50' : 'border-gray-200 focus:border-yellow-400'
-                          }`}
+                          readOnly
+                          className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed"
                           placeholder="your.email@example.com"
                         />
                       </div>
-                      {errors.email && (
-                        <p className="mt-1 text-sm text-red-600 flex items-center space-x-1">
-                          <AlertCircle className="h-4 w-4" />
-                          <span>{errors.email.message}</span>
-                        </p>
-                      )}
+                      <p className="mt-1 text-xs text-gray-500">
+                        Email is automatically filled from your Google account
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -527,7 +723,6 @@ export default function StudentRegistration() {
                           type="text"
                           {...register('roomNo', {
                             required: 'Room number is required',
-                        
                           })}
                           className={`w-full pl-10 pr-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all duration-200 ${
                             errors.roomNo ? 'border-red-300 bg-red-50' : 'border-gray-200 focus:border-yellow-400'
@@ -617,29 +812,31 @@ export default function StudentRegistration() {
 
                 {/* Submit Button */}
                 <div className="pt-6">
-            {   profilePreview!==null &&   <button
-                    type="submit"
-                    disabled={isSubmitting || uploadingImage}
-                    className={`w-full py-4 px-6 rounded-lg font-semibold text-white transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-yellow-300 ${
-                      isSubmitting || uploadingImage
-                        ? 'bg-gray-400 cursor-not-allowed'
-                        : 'bg-gradient-to-r from-yellow-400 to-orange-400 hover:from-yellow-500 hover:to-orange-500 shadow-lg hover:shadow-xl'
-                    }`}
-                  >
-                    {isSubmitting ? (
-                      <div className="flex items-center justify-center space-x-2">
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                        <span>Submitting Registration...</span>
-                      </div>
-                    ) : uploadingImage ? (
-                      <div className="flex items-center justify-center space-x-2">
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                        <span>Please wait, uploading image...</span>
-                      </div>
-                    ) : (
-                      'Submit Registration'
-                    )}
-                  </button>  }
+                  {profilePreview !== null && (
+                    <button
+                      type="submit"
+                      disabled={isSubmitting || uploadingImage}
+                      className={`w-full py-4 px-6 rounded-lg font-semibold text-white transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-yellow-300 ${
+                        isSubmitting || uploadingImage
+                          ? 'bg-gray-400 cursor-not-allowed'
+                          : 'bg-gradient-to-r from-yellow-400 to-orange-400 hover:from-yellow-500 hover:to-orange-500 shadow-lg hover:shadow-xl'
+                      }`}
+                    >
+                      {isSubmitting ? (
+                        <div className="flex items-center justify-center space-x-2">
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                          <span>Submitting Registration...</span>
+                        </div>
+                      ) : uploadingImage ? (
+                        <div className="flex items-center justify-center space-x-2">
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                          <span>Please wait, uploading image...</span>
+                        </div>
+                      ) : (
+                        'Submit Registration'
+                      )}
+                    </button>
+                  )}
                 </div>
               </form>
             </div>
