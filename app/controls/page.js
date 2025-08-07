@@ -16,7 +16,7 @@ const StudentManagement = () => {
   const fetchStudents = async () => {
     try {
       // Corrected: Use template literals for environment variables
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/post-member`);
+      const response = await fetch(`/api/post-member`);
       const result = await response.json();
       // Only show unapproved students
       const unapprovedStudents = result.data.filter(student => !student.approved);
@@ -37,7 +37,7 @@ const StudentManagement = () => {
     try {
       if (action === 'delete') {
         // Corrected: Use template literals for environment variables
-        await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/E-D-members/${encodeURIComponent(student.email)}`, {
+        await fetch(`/api/E-D-members/${encodeURIComponent(student.email)}`, {
           method: 'DELETE',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ publicId: student.profilePicture?.split('/').pop().split('.')[0] || '' })
@@ -45,7 +45,7 @@ const StudentManagement = () => {
         setStudents(prev => prev.filter(s => s._id !== studentId));
       } else if (action === 'accept') {
         // Corrected: Use template literals for environment variables
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/E-D-members/${encodeURIComponent(student.email)}`, {
+        const res = await fetch(`/api/E-D-members/${encodeURIComponent(student.email)}`, {
           method: 'PATCH'
         });
         const data = await res.json();
