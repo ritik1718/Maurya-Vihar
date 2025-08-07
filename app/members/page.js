@@ -1,5 +1,3 @@
-// app/team/page.jsx
-
 'use client'
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
@@ -58,7 +56,7 @@ const PORCard = ({ por, index }) => (
   </div>
 );
 
-// --- Card Component for Members (no change needed) ---
+// --- Card Component for Members ---
 const MemberCard = ({ member, index }) => (
   <div 
     className="bg-white/80 backdrop-blur-sm p-4 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 flex items-center space-x-4 animate-fade-in-up"
@@ -82,7 +80,7 @@ const MemberCard = ({ member, index }) => (
   </div>
 );
 
-// --- Main Page Component (no change needed in logic) ---
+// --- Main Page Component ---
 export default function OurTeamPage() {
   const [pors, setPors] = useState([]);
   const [members, setMembers] = useState([]);
@@ -112,7 +110,11 @@ export default function OurTeamPage() {
         const porData = await porResponse.json();
         const memberData = await memberResponse.json();
         
-        const sortedPors = porData.data.sort((a, b) => {
+        // **FILTERING LOGIC CORRECTED HERE**
+        const allPors = porData.data; // All PORs are shown
+        const approvedMembers = memberData.data.filter(member => member.approved); // Only approved members are shown
+
+        const sortedPors = allPors.sort((a, b) => {
           const indexA = positionOrder.indexOf(a.position);
           const indexB = positionOrder.indexOf(b.position);
           if (indexA === -1 && indexB === -1) return a.name.localeCompare(b.name);
@@ -122,7 +124,7 @@ export default function OurTeamPage() {
         });
 
         setPors(sortedPors);
-        setMembers(memberData.data);
+        setMembers(approvedMembers); // Set the filtered members
       } catch (err) {
         setError(err.message);
         console.error("Fetch error:", err);
