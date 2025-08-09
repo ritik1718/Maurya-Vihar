@@ -135,7 +135,7 @@ const PORForm = () => {
         setIsUploading(false);
       }
 
-      const response = await fetch('http://localhost:3000/api/post-por', {
+      const response = await fetch('/api/post-por', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
